@@ -17,6 +17,12 @@ Web UI • REST API • MCP Server • Long Audio Support
 
 ---
 
+## 🖥️ Screenshot
+
+![Web UI](resources/ui-screenshot.png)
+
+---
+
 ## ✨ Features
 
 - 🎯 **High Accuracy** - Based on GLM-ASR-Nano-2512 (1.5B), outperforms Whisper V3
@@ -133,28 +139,86 @@ Open http://localhost:7860 in your browser:
 - Click "Transcribe"
 - Copy result
 
-### REST API
+---
 
-```bash
-# Transcribe audio
-curl -X POST http://localhost:7860/api/transcribe \
-  -F "file=@audio.mp3"
+## 🔌 API Reference
 
-# GPU status
-curl http://localhost:7860/gpu/status
-
-# Unload model
-curl -X POST http://localhost:7860/gpu/unload
-
-# Reload model
-curl -X POST http://localhost:7860/gpu/load
+### Base URL
+```
+http://localhost:7860
 ```
 
-### API Documentation
+### Endpoints
 
-Swagger UI: http://localhost:7860/docs
+#### Health Check
+```http
+GET /health
+```
+**Response:**
+```json
+{"status": "ok", "model_loaded": true}
+```
 
-### MCP Server (Claude Desktop)
+#### Transcribe Audio
+```http
+POST /api/transcribe
+Content-Type: multipart/form-data
+```
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| file | File | Yes | Audio file (wav/mp3/flac/m4a/ogg) |
+| max_new_tokens | int | No | Max output tokens (default: 512) |
+
+**Example:**
+```bash
+curl -X POST http://localhost:7860/api/transcribe \
+  -F "file=@audio.mp3"
+```
+**Response:**
+```json
+{"status": "success", "text": "Transcribed text here..."}
+```
+
+#### GPU Status
+```http
+GET /gpu/status
+```
+**Response:**
+```json
+{
+  "model_loaded": true,
+  "device": "cuda",
+  "checkpoint": "zai-org/GLM-ASR-Nano-2512",
+  "gpu_memory_used_mb": 4320.5,
+  "gpu_memory_total_mb": 24576.0
+}
+```
+
+#### Unload Model
+```http
+POST /gpu/unload
+```
+**Response:**
+```json
+{"status": "unloaded"}
+```
+
+#### Load Model
+```http
+POST /gpu/load
+```
+**Response:**
+```json
+{"status": "loaded"}
+```
+
+### Swagger Documentation
+Interactive API docs: http://localhost:7860/docs
+
+---
+
+## 🤖 MCP Server (Claude Desktop)
 
 Add to `claude_desktop_config.json`:
 
@@ -168,6 +232,12 @@ Add to `claude_desktop_config.json`:
   }
 }
 ```
+
+Available tools:
+- `transcribe` - Transcribe audio file
+- `gpu_status` - Get GPU/model status
+- `gpu_load` - Load model to GPU
+- `gpu_unload` - Unload model from GPU
 
 ---
 
@@ -203,6 +273,10 @@ GLM-ASR-Nano achieves the lowest average error rate (4.10) among comparable mode
 ---
 
 ## 📝 Changelog
+
+### v1.0.1 (2024-12-14)
+- ✅ Added UI screenshot to documentation
+- ✅ Enhanced API documentation
 
 ### v1.0.0 (2024-12-14)
 - ✅ Long audio chunked transcription

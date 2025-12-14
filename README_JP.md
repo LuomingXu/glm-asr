@@ -17,6 +17,12 @@ Web UI • REST API • MCP サーバー • 長時間音声対応
 
 ---
 
+## 🖥️ スクリーンショット
+
+![Web UI](resources/ui-screenshot.png)
+
+---
+
 ## ✨ 機能
 
 - 🎯 **高精度認識** - GLM-ASR-Nano-2512 (1.5B) 搭載、Whisper V3 を上回る性能
@@ -133,28 +139,86 @@ http://localhost:7860 を開く：
 - 「文字起こし」をクリック
 - 結果をコピー
 
-### REST API
+---
 
-```bash
-# 音声文字起こし
-curl -X POST http://localhost:7860/api/transcribe \
-  -F "file=@audio.mp3"
+## 🔌 API リファレンス
 
-# GPU ステータス
-curl http://localhost:7860/gpu/status
-
-# モデルアンロード
-curl -X POST http://localhost:7860/gpu/unload
-
-# モデル再ロード
-curl -X POST http://localhost:7860/gpu/load
+### ベース URL
+```
+http://localhost:7860
 ```
 
-### API ドキュメント
+### エンドポイント
 
-Swagger UI：http://localhost:7860/docs
+#### ヘルスチェック
+```http
+GET /health
+```
+**レスポンス：**
+```json
+{"status": "ok", "model_loaded": true}
+```
 
-### MCP サーバー（Claude Desktop）
+#### 音声文字起こし
+```http
+POST /api/transcribe
+Content-Type: multipart/form-data
+```
+**パラメータ：**
+| 名前 | 型 | 必須 | 説明 |
+|------|------|------|------|
+| file | File | はい | 音声ファイル（wav/mp3/flac/m4a/ogg） |
+| max_new_tokens | int | いいえ | 最大出力トークン数（デフォルト：512） |
+
+**例：**
+```bash
+curl -X POST http://localhost:7860/api/transcribe \
+  -F "file=@audio.mp3"
+```
+**レスポンス：**
+```json
+{"status": "success", "text": "文字起こしされたテキスト..."}
+```
+
+#### GPU ステータス
+```http
+GET /gpu/status
+```
+**レスポンス：**
+```json
+{
+  "model_loaded": true,
+  "device": "cuda",
+  "checkpoint": "zai-org/GLM-ASR-Nano-2512",
+  "gpu_memory_used_mb": 4320.5,
+  "gpu_memory_total_mb": 24576.0
+}
+```
+
+#### モデルアンロード
+```http
+POST /gpu/unload
+```
+**レスポンス：**
+```json
+{"status": "unloaded"}
+```
+
+#### モデルロード
+```http
+POST /gpu/load
+```
+**レスポンス：**
+```json
+{"status": "loaded"}
+```
+
+### Swagger ドキュメント
+インタラクティブ API ドキュメント：http://localhost:7860/docs
+
+---
+
+## 🤖 MCP サーバー（Claude Desktop）
 
 `claude_desktop_config.json` に追加：
 
@@ -168,6 +232,12 @@ Swagger UI：http://localhost:7860/docs
   }
 }
 ```
+
+利用可能なツール：
+- `transcribe` - 音声ファイルを文字起こし
+- `gpu_status` - GPU/モデル状態を取得
+- `gpu_load` - モデルを GPU にロード
+- `gpu_unload` - GPU からモデルをアンロード
 
 ---
 
@@ -203,6 +273,10 @@ GLM-ASR-Nano は同等モデル中最低のエラー率（4.10）を達成：
 ---
 
 ## 📝 変更履歴
+
+### v1.0.1 (2024-12-14)
+- ✅ UI スクリーンショットを追加
+- ✅ API ドキュメントを強化
 
 ### v1.0.0 (2024-12-14)
 - ✅ 長時間音声チャンク文字起こし

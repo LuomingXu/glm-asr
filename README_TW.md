@@ -17,6 +17,12 @@ Web 介面 • REST API • MCP 服務 • 長音訊支援
 
 ---
 
+## 🖥️ 介面截圖
+
+![Web UI](resources/ui-screenshot.png)
+
+---
+
 ## ✨ 功能特性
 
 - 🎯 **高精度識別** - 基於 GLM-ASR-Nano-2512 (1.5B)，效能超越 Whisper V3
@@ -133,28 +139,86 @@ services:
 - 點擊「轉錄」
 - 複製結果
 
-### REST API
+---
 
-```bash
-# 轉錄音訊
-curl -X POST http://localhost:7860/api/transcribe \
-  -F "file=@audio.mp3"
+## 🔌 API 文件
 
-# 查看 GPU 狀態
-curl http://localhost:7860/gpu/status
-
-# 卸載模型
-curl -X POST http://localhost:7860/gpu/unload
-
-# 重新載入模型
-curl -X POST http://localhost:7860/gpu/load
+### 基礎位址
+```
+http://localhost:7860
 ```
 
-### API 文件
+### 介面列表
 
-Swagger UI：http://localhost:7860/docs
+#### 健康檢查
+```http
+GET /health
+```
+**回應：**
+```json
+{"status": "ok", "model_loaded": true}
+```
 
-### MCP 服務（Claude Desktop）
+#### 音訊轉錄
+```http
+POST /api/transcribe
+Content-Type: multipart/form-data
+```
+**參數：**
+| 名稱 | 類型 | 必填 | 說明 |
+|------|------|------|------|
+| file | File | 是 | 音訊檔案（wav/mp3/flac/m4a/ogg） |
+| max_new_tokens | int | 否 | 最大輸出 token 數（預設：512） |
+
+**範例：**
+```bash
+curl -X POST http://localhost:7860/api/transcribe \
+  -F "file=@audio.mp3"
+```
+**回應：**
+```json
+{"status": "success", "text": "轉錄的文字內容..."}
+```
+
+#### GPU 狀態
+```http
+GET /gpu/status
+```
+**回應：**
+```json
+{
+  "model_loaded": true,
+  "device": "cuda",
+  "checkpoint": "zai-org/GLM-ASR-Nano-2512",
+  "gpu_memory_used_mb": 4320.5,
+  "gpu_memory_total_mb": 24576.0
+}
+```
+
+#### 卸載模型
+```http
+POST /gpu/unload
+```
+**回應：**
+```json
+{"status": "unloaded"}
+```
+
+#### 載入模型
+```http
+POST /gpu/load
+```
+**回應：**
+```json
+{"status": "loaded"}
+```
+
+### Swagger 文件
+互動式 API 文件：http://localhost:7860/docs
+
+---
+
+## 🤖 MCP 服務（Claude Desktop）
 
 在 `claude_desktop_config.json` 中新增：
 
@@ -168,6 +232,12 @@ Swagger UI：http://localhost:7860/docs
   }
 }
 ```
+
+可用工具：
+- `transcribe` - 轉錄音訊檔案
+- `gpu_status` - 取得 GPU/模型狀態
+- `gpu_load` - 載入模型到 GPU
+- `gpu_unload` - 從 GPU 卸載模型
 
 ---
 
@@ -203,6 +273,10 @@ GLM-ASR-Nano 在同類模型中錯誤率最低（4.10）：
 ---
 
 ## 📝 更新日誌
+
+### v1.0.1 (2024-12-14)
+- ✅ 新增 UI 介面截圖
+- ✅ 完善 API 文件
 
 ### v1.0.0 (2024-12-14)
 - ✅ 長音訊分段轉錄

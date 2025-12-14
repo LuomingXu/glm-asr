@@ -17,6 +17,12 @@ Web 界面 • REST API • MCP 服务 • 长音频支持
 
 ---
 
+## 🖥️ 界面截图
+
+![Web UI](resources/ui-screenshot.png)
+
+---
+
 ## ✨ 功能特性
 
 - 🎯 **高精度识别** - 基于 GLM-ASR-Nano-2512 (1.5B)，性能超越 Whisper V3
@@ -133,28 +139,86 @@ services:
 - 点击"转录"
 - 复制结果
 
-### REST API
+---
 
-```bash
-# 转录音频
-curl -X POST http://localhost:7860/api/transcribe \
-  -F "file=@audio.mp3"
+## 🔌 API 文档
 
-# 查看 GPU 状态
-curl http://localhost:7860/gpu/status
-
-# 卸载模型
-curl -X POST http://localhost:7860/gpu/unload
-
-# 重新加载模型
-curl -X POST http://localhost:7860/gpu/load
+### 基础地址
+```
+http://localhost:7860
 ```
 
-### API 文档
+### 接口列表
 
-Swagger UI：http://localhost:7860/docs
+#### 健康检查
+```http
+GET /health
+```
+**响应：**
+```json
+{"status": "ok", "model_loaded": true}
+```
 
-### MCP 服务（Claude Desktop）
+#### 音频转录
+```http
+POST /api/transcribe
+Content-Type: multipart/form-data
+```
+**参数：**
+| 名称 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| file | File | 是 | 音频文件（wav/mp3/flac/m4a/ogg） |
+| max_new_tokens | int | 否 | 最大输出 token 数（默认：512） |
+
+**示例：**
+```bash
+curl -X POST http://localhost:7860/api/transcribe \
+  -F "file=@audio.mp3"
+```
+**响应：**
+```json
+{"status": "success", "text": "转录的文本内容..."}
+```
+
+#### GPU 状态
+```http
+GET /gpu/status
+```
+**响应：**
+```json
+{
+  "model_loaded": true,
+  "device": "cuda",
+  "checkpoint": "zai-org/GLM-ASR-Nano-2512",
+  "gpu_memory_used_mb": 4320.5,
+  "gpu_memory_total_mb": 24576.0
+}
+```
+
+#### 卸载模型
+```http
+POST /gpu/unload
+```
+**响应：**
+```json
+{"status": "unloaded"}
+```
+
+#### 加载模型
+```http
+POST /gpu/load
+```
+**响应：**
+```json
+{"status": "loaded"}
+```
+
+### Swagger 文档
+交互式 API 文档：http://localhost:7860/docs
+
+---
+
+## 🤖 MCP 服务（Claude Desktop）
 
 在 `claude_desktop_config.json` 中添加：
 
@@ -168,6 +232,12 @@ Swagger UI：http://localhost:7860/docs
   }
 }
 ```
+
+可用工具：
+- `transcribe` - 转录音频文件
+- `gpu_status` - 获取 GPU/模型状态
+- `gpu_load` - 加载模型到 GPU
+- `gpu_unload` - 从 GPU 卸载模型
 
 ---
 
@@ -203,6 +273,10 @@ GLM-ASR-Nano 在同类模型中错误率最低（4.10）：
 ---
 
 ## 📝 更新日志
+
+### v1.0.1 (2024-12-14)
+- ✅ 添加 UI 界面截图
+- ✅ 完善 API 文档
 
 ### v1.0.0 (2024-12-14)
 - ✅ 长音频分段转录
