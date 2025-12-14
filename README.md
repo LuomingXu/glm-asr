@@ -274,8 +274,19 @@ GLM-ASR-Nano achieves the lowest average error rate (4.10) among comparable mode
 
 ## 📝 Changelog
 
+### v1.1.0 (2024-12-15)
+- ✅ VAD smart segmentation (silero-vad)
+- ✅ Cut at natural pauses, no word/sentence breaking
+- ✅ Support unlimited audio length (tested 1.5 hours)
+- ✅ Each segment ≤ 25s, prevents OOM
+- ✅ Auto-merge short segments (≥ 2s)
+
+### v1.0.2 (2024-12-14)
+- ✅ Long audio protection (max 30 min truncation)
+- ✅ Better error handling
+
 ### v1.0.1 (2024-12-14)
-- ✅ Added UI screenshot to documentation
+- ✅ Added UI screenshot
 - ✅ Enhanced API documentation
 
 ### v1.0.0 (2024-12-14)
