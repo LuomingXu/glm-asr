@@ -100,36 +100,34 @@ class GPUManager:
             status["gpu_memory_total_mb"] = torch.cuda.get_device_properties(0).total_memory / 1024 / 1024
         return status
 
-    def transcribe(self, audio_path: str, max_new_tokens: int = 512, max_duration: int = 1800) -> str:
-        """转录音频 - 支持长音频分段处理
+    def transcribe(self, audio_path: str, max_new_tokens: int = 512) -> str:
+        """转录音频 - VAD 智能分段，支持任意长度音频
         
         Args:
             audio_path: 音频文件路径
             max_new_tokens: 每段最大生成 token 数
-            max_duration: 最大音频时长（秒），默认 30 分钟，超过则截断
         """
         if self.model is None:
             raise RuntimeError("模型未加载，请先加载模型")
         
         import torchaudio
+        import tempfile
+        import os
         from inference import build_prompt, prepare_inputs
+        from vad_segmenter import smart_segment
         
         with self.lock:
-            # 加载音频获取时长
+            # 加载音频
             wav, sr = torchaudio.load(str(audio_path))
-            wav = wav[:1, :]  # 只取单声道
+            wav = wav[:1, :]  # 单声道
             if sr != 16000:
                 wav = torchaudio.transforms.Resample(sr, 16000)(wav)
-            duration = wav.shape[1] / 16000
             
-            # 超长音频截断保护
-            if duration > max_duration:
-                logger.warning(f"音频时长 {duration:.0f}s 超过限制 {max_duration}s，将截断处理")
-                wav = wav[:, :max_duration * 16000]
-                duration = max_duration
+            duration = wav.shape[1] / 16000
+            logger.info(f"音频时长: {duration:.1f}s")
             
             # 短音频直接处理
-            if duration <= 30:
+            if duration <= 25:
                 batch = build_prompt(
                     Path(audio_path),
                     self.tokenizer,
@@ -148,17 +146,15 @@ class GPUManager:
                 transcript_ids = generated[0, prompt_len:].cpu().tolist()
                 return self.tokenizer.decode(transcript_ids, skip_special_tokens=True).strip()
             
-            # 长音频分段处理
-            import tempfile
-            import os
+            # 长音频：VAD 智能分段
+            segments = smart_segment(wav[0], sr=16000, max_duration=25.0, min_duration=2.0)
             
-            chunk_size = 25 * 16000  # 25秒一段，留余量
+            if not segments:
+                return ""
+            
             results = []
-            
-            for start in range(0, wav.shape[1], chunk_size):
-                chunk = wav[:, start:start + chunk_size]
-                if chunk.shape[1] < 16000:  # 跳过不足1秒的片段
-                    continue
+            for i, (start, end) in enumerate(segments):
+                chunk = wav[:, start:end]
                 
                 # 保存临时文件
                 with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as f:
