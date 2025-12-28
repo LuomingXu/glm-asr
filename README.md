@@ -198,7 +198,7 @@ GLM-ASR-Nano achieves the lowest average error rate (4.10) among comparable mode
 
 ## 📝 Changelog
 
-### v2.0.1 (2024-12-28)
+### v2.0.1 (2025-12-28)
 - ✅ Migrated to FastAPI async framework
 - ✅ SSE streaming for real-time progress
 - ✅ Complete Swagger API documentation
@@ -206,11 +206,11 @@ GLM-ASR-Nano achieves the lowest average error rate (4.10) among comparable mode
 - ✅ Fixed browser timeout for long audio
 - ✅ Modern dark UI with progress display
 
-### v1.1.0 (2024-12-15)
+### v1.1.0 (2025-12-15)
 - ✅ VAD smart segmentation (silero-vad)
 - ✅ Support unlimited audio length
 
-### v1.0.0 (2024-12-14)
+### v1.0.0 (2025-12-14)
 - ✅ Initial release
 - ✅ Web UI with 4 language support
 - ✅ REST API with Swagger docs
